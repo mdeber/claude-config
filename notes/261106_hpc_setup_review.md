@@ -127,3 +127,10 @@ Full stream-json transcripts captured; every Bash call auditable. Per-iteration 
 Nit: the verify log entry typed "16:25" instead of using `date` (ran 16:21). Template log README
 could say: timestamps come from `date`, never typed.
 Status: loop engineering works as designed. Launch stays with Mike (terminal-approved tmux line).
+
+## 261106 later
+- /jukebox/scratch is not purged (Mike: never has been; admins would warn). Closed.
+- GitHub: ~/.claude -> mdeber/claude-config, template (renamed tools/project-template) -> mdeber/ai-project-template.
+- The first push carried ~200 files under skills/synced/ (claude.ai skill bundles the standalone CLI
+  downloads after login). Not config. Now ignored and removed from the index; history keeps them
+  (18 MB) unless Mike rewrites it.

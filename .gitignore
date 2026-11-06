@@ -32,6 +32,8 @@
 .credentials.json
 sessions/
 backups/
+skills/synced/
+plugins/synced/
 *.key
 *~
 \#*#

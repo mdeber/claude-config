@@ -27,5 +27,6 @@ by Mike via tmux), `notes/261106_hpc_setup_review.md` (design record and smoke-t
 **Why:** Mike wants config history as data, versioned in git and off a single machine.
 
 **How to apply:** After editing any tracked file under ~/.claude or the template, commit with a
-message naming the behavior it targets, then `git push`. Open: whether /jukebox/scratch is purged.
+message naming the behavior it targets, then `git push`. /jukebox/scratch is not purged (Mike, 2026-11-06).
+`skills/synced/` and `plugins/synced/` are claude.ai downloads, ignored.
 See [[git-not-snapshots]].
