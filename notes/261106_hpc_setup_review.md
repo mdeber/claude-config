@@ -118,3 +118,12 @@ Found and fixed:
   command Mike approves. Matches "only when Mike asks".
 - Template projects need a git identity: Mike's global gitconfig has none; init_project.sh's
   first commit would fail. Open: set global user.name/email (recommended) or patch the script.
+
+## 261106 second smoke test (loop_smoke_261106b), after the fixes
+2 min 20 s end to end. iter 1: 46 s, 5 turns, $0.73 — `source config/hpc.sh && sbatch` ran first
+try, no wrapper, no denial. Job 60 s on spockmk2-23-06; driver saw it leave the queue within 60 s.
+iter 2: 34 s, 3 turns, $0.54 — judged the job by 7390911.exit (0) and the output, DONE.
+Full stream-json transcripts captured; every Bash call auditable. Per-iteration floor ~$0.33.
+Nit: the verify log entry typed "16:25" instead of using `date` (ran 16:21). Template log README
+could say: timestamps come from `date`, never typed.
+Status: loop engineering works as designed. Launch stays with Mike (terminal-approved tmux line).
