@@ -16,6 +16,8 @@
 !skills/**
 !hooks/
 !hooks/**
+!notes/
+!notes/**
 
 # Per-project curated memory (not transcripts).
 !projects/
