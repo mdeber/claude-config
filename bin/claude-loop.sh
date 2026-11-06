@@ -62,7 +62,7 @@ for i in $(seq 1 "$MAX_ITER"); do
   "$CLAUDE" -p "$PROTOCOL
 
 $PROMPT" --permission-mode "$PERM" --max-budget-usd "$BUDGET" --output-format stream-json --verbose \
-    > "scratch/loop/iter_$i.jsonl" 2> "scratch/loop/iter_$i.err"
+    < /dev/null > "scratch/loop/iter_$i.jsonl" 2> "scratch/loop/iter_$i.err"
   rc=$?
   /usr/bin/jq -r 'select(.type=="result") | .result // empty' "scratch/loop/iter_$i.jsonl" > "scratch/loop/iter_$i.log" 2>/dev/null
   meta=$(/usr/bin/jq -r 'select(.type=="result") | "cost_usd=\(.total_cost_usd // "?") turns=\(.num_turns // "?") session=\(.session_id // "?")"' "scratch/loop/iter_$i.jsonl" 2>/dev/null | tail -1)
