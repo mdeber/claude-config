@@ -80,3 +80,21 @@ session are scoped to claude-test; the method.md edit (c779f25) is what carries.
 3. Loop v1 = verify, log, commit, prepare-not-submit. OK?
 4. Install standalone `claude` + `claude auth login` on scotty (your action).
 5. Is /jukebox/scratch purged on a schedule? (envs and the template live there.)
+
+## 261106 update — Mike's corrections
+- DECISION: scotty rule = memory ceiling ~300 GB; prefer spock when actual compute > ~30 min
+  (simply faster there) and for GPU (scotty has GPU; spock is faster). Processes may run for days
+  and use high memory; under 100 GB is safe indefinitely. The kill risk is an idle high-memory
+  process held for days (a 200 GB object in a tmux R/Python session nobody touches), not runtime
+  or memory per se. Replaces the 8-core/64 GB budget and my 2 h/100 GB draft.
+- DECISION: permissions on PNI are open and inherit from the lab dirs. Never make files
+  user-private (no chmod 600/700, no umask 077).
+- DECISION: no blanket raw-data chmod. The rule is judgment: never modify irreplaceable data in
+  place; read-only is good practice when the task won't write there; ask before writing into a
+  directory you didn't create.
+- DECISION: extended autonomy is a mode entered only when Mike asks. In it Claude may submit
+  jobs and iterate for days (research → plan → implement → run → analyze → rethink → rerun →
+  report), under the template protocol and git. So v1 allows sbatch inside the loop, not
+  prepare-only; plan decision points still stop unless the goal names which Claude may take.
+- DECISION: make the standalone login work (claude on scotty + `claude auth login`).
+- Still open: is /jukebox/scratch purged on a schedule?

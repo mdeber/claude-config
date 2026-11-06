@@ -18,6 +18,8 @@
 !hooks/**
 !notes/
 !notes/**
+!bin/
+!bin/**
 
 # Per-project curated memory (not transcripts).
 !projects/

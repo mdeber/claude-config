@@ -13,6 +13,27 @@
       "Bash(chmod*)", "Bash(chown*)", "Bash(git push*)",
       "Bash(pip install*)", "Bash(conda install*)", "Bash(conda create*)",
       "Bash(curl*)", "Bash(wget*)"
+    ],
+    "deny": [
+      "Bash(rm -r*)", "Bash(rm -R*)", "Bash(rm -fr*)", "Bash(rm -fR*)", "Bash(rm --recursive*)",
+      "Bash(git clean*)", "Bash(git reset --hard*)", "Bash(git push --force*)", "Bash(git push -f*)",
+      "Bash(shred*)", "Bash(truncate*)"
+    ]
+  },
+  "autoMode": {
+    "hard_deny": [
+      "$defaults",
+      "Recursive or forced deletes (rm -r/-rf, find -delete, rsync --delete, truncate, shred) and history-rewriting git (clean, reset --hard, push --force), even when wrapped in tmux, conda run, xargs, bash -c or a script: Mike runs these himself."
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "~/.claude/hooks/bash-guard.sh", "timeout": 10, "onFailure": "block", "statusMessage": "bash-guard" }
+        ]
+      }
     ]
   }
 }

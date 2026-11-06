@@ -1,7 +1,7 @@
 # PNI environment (md6347)
 
 ## Where things are
-- **scotty** = login node, also usable for real work. 44 cores, ~1 TB RAM, SHARED with all of PNI.
+- **scotty** = login node, also usable for real work. 44 cores, ~1 TB RAM, GPU. SHARED with all of PNI.
 - **spock** = Slurm compute. Submit from scotty; never log in to spock.
 - Canonical paths use `/jukebox` (= `/mnt/cup/labs`; `/jukebox/scratch` = `/mnt/bucket/scratch`, a
   separate filesystem from the lab dirs).
@@ -11,32 +11,41 @@
   `/jukebox/pena`, `/jukebox/krienen` in anything that runs on the HPC.
 - Labs: `/jukebox/pena`, `/jukebox/krienen`. Both run near capacity; `df -h` before writing
   large outputs, and prefer scratch for intermediates.
-- Mike's scratch: `/jukebox/pena/mike`, `/jukebox/krienen/lab_members/mike`, `/jukebox/scratch/md6347`.
+- Mike's scratch: `/jukebox/pena/mike`, `/jukebox/krienen/lab_members/mike`, `/jukebox/scratch/md6347`
+  (conda envs in `envs/`; the project template in `tools/pni-project-template`).
 - Home `~` = `/mnt/cup/people/md6347`, NFS. Config and old envs only. Not for data, code, or new envs.
 - Primary group is `games`; lab dirs are setgid so files inherit `g_pena`/`g_krienen`. umask 002.
 
-## Compute budget (the system enforces nothing — these are the limits)
-- On scotty: inspection, file ops, small interactive analysis. Stay under ~8 cores and ~64 GB.
-- Real computation goes to Slurm as a written sbatch script. Never run long work in-session: the
-  session dies with the laptop's connection, Slurm jobs don't.
+## Compute: scotty or Slurm — decide in one line, then move on
+- **Scotty**: interactive work; anything whose actual compute is under ~30 min; anything that must
+  outlive this session (in tmux, never in the session foreground); watchers and job launchers.
+  Memory ceiling ~300 GB. Under 100 GB is safe indefinitely, and processes can run for days.
+  What gets killed: a process holding large memory for days while computing nothing — the idle
+  R/Python session left in tmux with a 200 GB object loaded. Don't leave those behind.
+  It is shared: `uptime` before anything heavy, and leave headroom.
+- **Slurm (spock)**: compute over ~30 min, GPU work, parallel sweeps — it is simply faster there.
+  Always a written sbatch script with explicit `--time`, `--mem`, `--cpus-per-task`.
+- Don't deliberate beyond this. Queue backed up and it fits scotty → scotty is fine.
 
-## When something doesn't work, narrow it — don't scale it
-- Wrap any exploratory command that touches `/jukebox` in `timeout 60`.
-- If an approach fails twice, STOP and report what you learned plus what you'd try next.
-  Do not escalate to a bigger/longer/parallel version of the same approach. Escalating resources
-  to brute-force a question that should be narrowed is always the wrong move — ask instead.
-- Slurm is for computation that is understood and specified, never for making a failing
-  exploratory command finish.
+## Data and permissions
+- Irreplaceable data (sequencer output, fastq, alignment/cellranger output — anything registered in
+  docs/data.md with an external provenance) is never modified in place; derived outputs go beside
+  it or under data/derived. If a task won't write to a data directory, leaving it read-only is good
+  practice. Ask before writing into a directory you didn't create.
+- Recursive or forced deletes (`rm -r`, `find -delete`, `rsync --delete`, `git clean`,
+  `git reset --hard`, `git push --force`) are Mike's to run, not Claude's. The Bash hook blocks
+  them and logs every command to `~/.claude/logs/bash.log`.
+- Permissions on PNI servers are open and inherit from the lab dirs (setgid, umask 002). Never
+  tighten them: no chmod 600/700, no umask 077, nothing user-private.
 
 ## NFS traversal
-Metadata operations on `/jukebox` are slow and shared. Recursive traversal is the main way to
-hang a session and degrade the filesystem for everyone.
-- `-maxdepth 3` by default. Above 4 requires a reason; there is no case for 10+.
-- Always prune dependency trees, which hold enormous file counts and are never the target:
-  `-name R -prune -o -name site-packages -prune -o -name .git -prune -o -name renv -prune -o`
-  (also conda env directories, `node_modules`, `lib/`).
-- Prefer walking one top-level subdirectory at a time, reporting as you go, over one deep scan.
-- Never run unbounded `find`, `du`, or `ls -R`.
+Metadata operations on `/jukebox` are slow and shared; an unbounded walk hangs the session and
+degrades the filesystem for everyone.
+- Bound every traversal: `timeout 60`, `-maxdepth`, and prune dependency trees
+  (`-name R -prune -o -name site-packages -prune -o -name .git -prune -o -name renv -prune -o`;
+  also conda envs, `node_modules`, `lib/`).
+- Walk one top-level directory at a time, shallow first; go deeper only where the shallow pass
+  points. Never unbounded `find`, `du`, or `ls -R`. Slurm is not a way to make a slow walk finish.
 
 ## Conda
 Non-interactive shells have no `conda`. Source it first:
@@ -66,3 +75,6 @@ Mike lives in tmux. Use it freely for anything long-running, detached, or worth 
 - Check liveness with `tmux has-session -t <name>` or `tmux ls`.
 - Tell Mike the session name whenever you start one, so he can attach himself.
 - Clean up finished sessions, but never kill one you didn't start.
+- Extended autonomy (only when Mike asks for it): `~/.claude/bin/claude-loop.sh "<goal>"`, run
+  detached as `cc-loop-<project>` from the project root. It re-enters headless Claude after every
+  Slurm wait; the protocol is in the project template's CLAUDE.md.

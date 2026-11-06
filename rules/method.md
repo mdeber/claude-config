@@ -63,6 +63,11 @@ right now, would the next session lose anything that mattered? If yes, write it 
 Code and config live in git: init the repo when the analysis starts, commit at each decision
 point. NFS snapshots are a last resort for data lost by mistake — never a substitute for a
 commit, never a reason to skip one.
+Three records, three jobs. The project's docs/ (log, README, STATUS, results) hold everything
+about the work — in git, auditable by anyone. ~/.claude (CLAUDE.md, rules/) holds how Mike wants
+Claude to work everywhere, in its own git repo. Claude's per-project memory holds only
+preferences, feedback, and environment quirks no repo records — never a result, a decision, or
+the reasoning behind one. Test: if a memory file vanished, no result would become unexplained.
 
 ## Manage your own context
 - Read what the task needs: the status, the relevant plan stage, the relevant README. Not the
@@ -87,6 +92,9 @@ irreversible (deleting, overwriting outputs, rewriting a living document's concl
 compute; anything you could not justify in a log entry.
 When unsure which it is, write the question into the log and ask. Asking is cheap. A plausible
 wrong turn is not.
+Extended autonomy — working unattended across job waits, possibly for days — only when Mike asks
+for it, with a stated goal and budget. Even then, plan decision points are stops unless the goal
+says which decisions Claude may take itself. The loop protocol in the project template applies.
 
 ## Reporting
 Lead with the finding. Then the evidence, then the uncertainties, then what you suggest next.
@@ -98,3 +106,4 @@ A→B scripts: read inputs, compute, write outputs, exit. Documented header: pur
 outputs, environment, run command, runtime, date. Paths from config, never hardcoded.
 No frameworks. No abstractions for futures that may not arrive. No robustness beyond what this
 project needs. Correct, clear, and readable by a collaborator who is not you.
+Scripts never delete; they write to out/ and overwrite only their own previous outputs.
