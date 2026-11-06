@@ -11,7 +11,7 @@
 #             DONE                            goal reached
 #             NEEDS_MIKE <one line why>       stop; a decision is Mike's
 # outputs : scratch/loop/iter_<n>.log (transcripts), scratch/loop/driver.log
-# env     : claude on PATH (or CLAUDE_BIN), logged in standalone once (`claude auth login`)
+# env     : ~/.claude/bin/claude (or CLAUDE_BIN), logged in standalone once (`claude auth login`)
 #           CLAUDE_LOOP_PERMISSION_MODE (default bypassPermissions; the bash-guard hook still applies)
 # written : 261106  by: Claude Code / Mike
 # ------------------------------------------------------------------
@@ -28,7 +28,7 @@ while [ $# -gt 0 ]; do
     *) echo "unknown argument: $1" >&2; exit 2 ;;
   esac
 done
-CLAUDE=${CLAUDE_BIN:-claude}
+CLAUDE=${CLAUDE_BIN:-$HOME/.claude/bin/claude}
 PERM=${CLAUDE_LOOP_PERMISSION_MODE:-bypassPermissions}
 
 [ -f CLAUDE.md ] && [ -d docs ] && [ -d .git ] || { echo "run from a project root (needs CLAUDE.md, docs/, .git)" >&2; exit 2; }

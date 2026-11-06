@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# claude — stable path to the Claude Code CLI the desktop app keeps on scotty.
+# Execs the newest ~/.claude/remote/ccd-cli/<version> binary, so it tracks app updates with no
+# separate install. Override with CLAUDE_BIN if a standalone install exists. written: 261106
+bin=$(ls -1d "$HOME"/.claude/remote/ccd-cli/* 2>/dev/null | sort -V | tail -1)
+[ -x "$bin" ] || { echo "claude: no CLI under ~/.claude/remote/ccd-cli (open the desktop app once)" >&2; exit 127; }
+exec "$bin" "$@"
