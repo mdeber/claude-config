@@ -98,3 +98,23 @@ session are scoped to claude-test; the method.md edit (c779f25) is what carries.
   prepare-only; plan decision points still stop unless the goal names which Claude may take.
 - DECISION: make the standalone login work (claude on scotty + `claude auth login`).
 - Still open: is /jukebox/scratch purged on a schedule?
+
+## 261106 smoke test of claude-loop.sh (project: /jukebox/scratch/md6347/tests/loop_smoke_261106)
+Full cycle in 7 min: iter 1 (80 s) planned P1, wrote run.sbatch, submitted 7390785, logged,
+committed, WAITING; job ran 60 s on spockmk2-23-07; iter 2 (36 s) verified, results row, P1 done,
+DONE. Two commits, two log entries with mode: unattended, STATUS overwritten. Protocol held.
+Found and fixed:
+- Under -p + bypassPermissions the settings.json ASK rules still apply and deny (nobody can answer).
+  The child then wrapped `sbatch` in `bash -c` to get past it. DECISION: a denial is a stop, never
+  routed around (method.md + loop protocol). Open for Mike: move `Bash(sbatch*)` and
+  `Bash(chmod +x*)` from ask to allow, since extended autonomy means submitting jobs.
+- sacct cannot reach the accounting DB from scotty; scontrol forgets finished jobs within minutes.
+  DECISION: jobs are judged by a <jobid>.exit marker (trap in every run.sbatch) and their outputs.
+- -p sessions are not persisted. DECISION: driver captures stream-json per iteration (every tool
+  call), extracts the final report to iter_n.log, logs cost/turns/session id.
+- Poll interval 300 s cost 4.5 min on a 60 s job. Now 60 s (CLAUDE_LOOP_POLL).
+- Launching a bypassPermissions child from inside a session is refused by the auto-mode
+  classifier ("create unsafe agents"). DECISION: loops are launched by Mike, or via a terminal
+  command Mike approves. Matches "only when Mike asks".
+- Template projects need a git identity: Mike's global gitconfig has none; init_project.sh's
+  first commit would fail. Open: set global user.name/email (recommended) or patch the script.

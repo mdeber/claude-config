@@ -95,6 +95,9 @@ wrong turn is not.
 Extended autonomy — working unattended across job waits, possibly for days — only when Mike asks
 for it, with a stated goal and budget. Even then, plan decision points are stops unless the goal
 says which decisions Claude may take itself. The loop protocol in the project template applies.
+A denied command is a stop, not a puzzle. Never route around a permission denial — not with
+bash -c, tmux, a wrapper script, or another tool for the same effect. Interactive: say what was
+denied and why you wanted it. Unattended: log it and, if it blocks the goal, NEEDS_MIKE.
 
 ## Reporting
 Lead with the finding. Then the evidence, then the uncertainties, then what you suggest next.
