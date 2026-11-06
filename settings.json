@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls*)", "Bash(cat*)", "Bash(head*)", "Bash(tail*)", "Bash(wc*)",
+      "Bash(df*)", "Bash(grep*)", "Bash(awk*)", "Bash(sort*)", "Bash(uniq*)",
+      "Bash(squeue*)", "Bash(sinfo*)", "Bash(sacct*)", "Bash(scontrol show*)",
+      "Bash(git status*)", "Bash(git diff*)", "Bash(git log*)",
+      "Bash(module*)", "Bash(conda env list*)", "Bash(conda run*)",
+      "Bash(tmux ls*)", "Bash(tmux has-session*)", "Bash(tmux capture-pane*)", "Bash(tmux new-session -d*)"
+    ],
+    "ask": [
+      "Bash(sbatch*)", "Bash(scancel*)", "Bash(rm*)", "Bash(mv*)",
+      "Bash(chmod*)", "Bash(chown*)", "Bash(git push*)",
+      "Bash(pip install*)", "Bash(conda install*)", "Bash(conda create*)",
+      "Bash(curl*)", "Bash(wget*)"
+    ]
+  }
+}

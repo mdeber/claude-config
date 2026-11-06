@@ -1,0 +1,34 @@
+# Allowlist: ignore everything, then un-ignore the hand-written config.
+*
+
+!.gitignore
+!CLAUDE.md
+!settings.json
+!settings.local.json
+
+!rules/
+!rules/**
+!agents/
+!agents/**
+!commands/
+!commands/**
+!skills/
+!skills/**
+!hooks/
+!hooks/**
+
+# Per-project curated memory (not transcripts).
+!projects/
+!projects/*/
+!projects/*/memory/
+!projects/*/memory/**
+
+# Explicit secret/state exclusions. Keep these LAST: the final matching rule
+# wins, so they hold even if an un-ignore line above is later made too broad.
+.credentials.json
+sessions/
+backups/
+*.key
+*~
+\#*#
+.DS_Store
