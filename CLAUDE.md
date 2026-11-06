@@ -12,7 +12,7 @@
 - Labs: `/jukebox/pena`, `/jukebox/krienen`. Both run near capacity; `df -h` before writing
   large outputs, and prefer scratch for intermediates.
 - Mike's scratch: `/jukebox/pena/mike`, `/jukebox/krienen/lab_members/mike`, `/jukebox/scratch/md6347`
-  (conda envs in `envs/`; the project template in `tools/pni-project-template`).
+  (conda envs in `envs/`; the project template in `tools/project-template`).
 - Home `~` = `/mnt/cup/people/md6347`, NFS. Config and old envs only. Not for data, code, or new envs.
 - Primary group is `games`; lab dirs are setgid so files inherit `g_pena`/`g_krienen`. umask 002.
 
