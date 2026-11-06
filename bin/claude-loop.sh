@@ -4,7 +4,8 @@
 #                  re-entering after every Slurm wait. Only when Mike asks for it.
 # usage   : cd <project root>
 #           tmux new-session -d -s cc-loop-<project> \
-#             '~/.claude/bin/claude-loop.sh "<goal>" [--max-iter N] [--max-days D] [--budget USD] [--allow-dirty]'
+#             '~/.claude/bin/claude-loop.sh "<goal>" | --goal-file <path>  [--max-iter N] [--max-days D] [--budget USD] [--allow-dirty]'
+#           A goal file (multi-paragraph, kept in scratch/loop/ or committed in docs/) is the normal form.
 # state   : scratch/loop/state — ONE line, written by Claude at the end of each iteration:
 #             WAITING <jobid> [<jobid>...]   jobs submitted; re-enter when they all finish
 #             CONTINUE                        more to do now; re-enter immediately
@@ -17,17 +18,19 @@
 # ------------------------------------------------------------------
 set -uo pipefail
 
-GOAL=${1:?usage: claude-loop.sh "<goal>" [--max-iter N] [--max-days D] [--budget USD] [--allow-dirty]}; shift
-MAX_ITER=20; MAX_DAYS=3; BUDGET=10; ALLOW_DIRTY=0
+GOAL=""; MAX_ITER=20; MAX_DAYS=3; BUDGET=10; ALLOW_DIRTY=0
 while [ $# -gt 0 ]; do
   case $1 in
+    --goal-file)   GOAL=$(cat "$2"); shift 2 ;;
     --max-iter)    MAX_ITER=$2; shift 2 ;;
     --max-days)    MAX_DAYS=$2; shift 2 ;;
     --budget)      BUDGET=$2;   shift 2 ;;
     --allow-dirty) ALLOW_DIRTY=1; shift ;;
-    *) echo "unknown argument: $1" >&2; exit 2 ;;
+    -*) echo "unknown argument: $1" >&2; exit 2 ;;
+    *)  GOAL=$1; shift ;;
   esac
 done
+[ -n "$GOAL" ] || { echo 'usage: claude-loop.sh "<goal>" | --goal-file <path>  [--max-iter N] [--max-days D] [--budget USD] [--allow-dirty]' >&2; exit 2; }
 CLAUDE=${CLAUDE_BIN:-$HOME/.claude/bin/claude}
 PERM=${CLAUDE_LOOP_PERMISSION_MODE:-bypassPermissions}
 
