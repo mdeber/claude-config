@@ -60,6 +60,9 @@ plus a log entry: in a template project, docs/log/YYMMDD_HHMM_<topic>.md; elsewh
 Living documents hold current state only; narrative and history go in the log.
 Write at the moment of the decision, not at the end of the session. Test: if the session ended
 right now, would the next session lose anything that mattered? If yes, write it down now.
+Code and config live in git: init the repo when the analysis starts, commit at each decision
+point. NFS snapshots are a last resort for data lost by mistake — never a substitute for a
+commit, never a reason to skip one.
 
 ## Manage your own context
 - Read what the task needs: the status, the relevant plan stage, the relevant README. Not the
