@@ -4,7 +4,7 @@
 #                  re-entering after every Slurm wait. Only when Mike asks for it.
 # usage   : cd <project root>
 #           tmux new-session -d -s cc-loop-<project> \
-#             '~/.claude/bin/claude-loop.sh "<goal>" | --goal-file <path>  [--max-iter N] [--max-days D] [--budget USD] [--allow-dirty]'
+#             '~/.claude/bin/claude-loop.sh "<goal>" | --goal-file <path>  [--max-iter N] [--max-days D] [--budget USD] [--model M] [--allow-dirty]'
 #           A goal file (multi-paragraph, kept in scratch/loop/ or committed in docs/) is the normal form.
 # state   : scratch/loop/state — ONE line, written by Claude at the end of each iteration:
 #             WAITING <jobid> [<jobid>...]   jobs submitted; re-enter when they all finish
@@ -17,25 +17,30 @@
 #           CLAUDE_LOOP_PERMISSION_MODE (default bypassPermissions; the bash-guard hook still applies,
 #           and so do settings.json ask rules, which deny when nobody can answer)
 #           CLAUDE_LOOP_POLL seconds between squeue checks (default 60)
+#           CLAUDE_LOOP_MODEL or --model: model for every iteration (default opus). Pinned because the
+#           CLI default changed between iterations of one run (261110); the model used is logged.
+# budget  : --budget is checked after each turn, so one turn can overshoot it (cap 0.05 -> spent 0.14).
+#           It includes subagent cost.
 # note    : sacct is often unreachable from scotty; jobs are judged by their <jobid>.exit marker
 #           and outputs (code/README.md), not by accounting.
 # written : 261106  by: Claude Code / Mike
 # ------------------------------------------------------------------
 set -uo pipefail
 
-GOAL=""; MAX_ITER=20; MAX_DAYS=3; BUDGET=10; ALLOW_DIRTY=0
+GOAL=""; MAX_ITER=20; MAX_DAYS=3; BUDGET=10; ALLOW_DIRTY=0; MODEL=${CLAUDE_LOOP_MODEL:-opus}
 while [ $# -gt 0 ]; do
   case $1 in
     --goal-file)   GOAL=$(cat "$2"); shift 2 ;;
     --max-iter)    MAX_ITER=$2; shift 2 ;;
     --max-days)    MAX_DAYS=$2; shift 2 ;;
     --budget)      BUDGET=$2;   shift 2 ;;
+    --model)       MODEL=$2;    shift 2 ;;
     --allow-dirty) ALLOW_DIRTY=1; shift ;;
     -*) echo "unknown argument: $1" >&2; exit 2 ;;
     *)  GOAL=$1; shift ;;
   esac
 done
-[ -n "$GOAL" ] || { echo 'usage: claude-loop.sh "<goal>" | --goal-file <path>  [--max-iter N] [--max-days D] [--budget USD] [--allow-dirty]' >&2; exit 2; }
+[ -n "$GOAL" ] || { echo 'usage: claude-loop.sh "<goal>" | --goal-file <path>  [--max-iter N] [--max-days D] [--budget USD] [--model M] [--allow-dirty]' >&2; exit 2; }
 CLAUDE=${CLAUDE_BIN:-$HOME/.claude/bin/claude}
 PERM=${CLAUDE_LOOP_PERMISSION_MODE:-bypassPermissions}
 POLL=${CLAUDE_LOOP_POLL:-60}
@@ -53,7 +58,7 @@ LOG=scratch/loop/driver.log
 DEADLINE=$(awk -v d="$MAX_DAYS" -v n="$(date +%s)" 'BEGIN { printf "%d", n + d * 86400 }')
 log() { printf '%s\t%s\n' "$(date +%FT%T)" "$*" | tee -a "$LOG"; }
 
-log "start goal=\"$GOAL\" max_iter=$MAX_ITER max_days=$MAX_DAYS budget=$BUDGET perm=$PERM"
+log "start goal=\"$GOAL\" max_iter=$MAX_ITER max_days=$MAX_DAYS budget=$BUDGET model=$MODEL perm=$PERM"
 PROMPT="GOAL: $GOAL"
 for i in $(seq 1 "$MAX_ITER"); do
   [ "$(date +%s)" -lt "$DEADLINE" ] || { log "stop: max-days reached"; exit 1; }
@@ -62,14 +67,15 @@ for i in $(seq 1 "$MAX_ITER"); do
   log "iter $i start"
   "$CLAUDE" -p "$PROTOCOL
 
-$PROMPT" --permission-mode "$PERM" --max-budget-usd "$BUDGET" --output-format stream-json --verbose \
+$PROMPT" --model "$MODEL" --permission-mode "$PERM" --max-budget-usd "$BUDGET" --output-format stream-json --verbose \
     < /dev/null > "scratch/loop/iter_$i.jsonl" 2> "scratch/loop/iter_$i.err"
   rc=$?
   /usr/bin/jq -r 'select(.type=="result") | .result // empty' "scratch/loop/iter_$i.jsonl" > "scratch/loop/iter_$i.log" 2>/dev/null
+  used=$(/usr/bin/jq -r 'select(.type=="system" and .subtype=="init") | .model' "scratch/loop/iter_$i.jsonl" 2>/dev/null | head -1)
   meta=$(/usr/bin/jq -r 'select(.type=="result") | "end=\(.subtype // "?") cost_usd=\(.total_cost_usd // "?") turns=\(.num_turns // "?") session=\(.session_id // "?")"' "scratch/loop/iter_$i.jsonl" 2>/dev/null | tail -1)
   state=MISSING; rest=""
   [ -f "$STATE" ] && read -r state rest < "$STATE"
-  log "iter $i end rc=$rc state=$state $rest $meta"
+  log "iter $i end rc=$rc state=$state $rest model=${used:-?} $meta"
   case $state in
     WAITING)
       [ -n "$rest" ] || { log "stop: WAITING with no job ids"; exit 1; }
