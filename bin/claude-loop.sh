@@ -14,8 +14,9 @@
 # outputs : scratch/loop/iter_<n>.jsonl (full transcript: every tool call and result, for audit),
 #           scratch/loop/iter_<n>.log (the iteration's final report), scratch/loop/driver.log
 # env     : ~/.claude/bin/claude (or CLAUDE_BIN), logged in standalone once (`claude auth login`)
-#           CLAUDE_LOOP_PERMISSION_MODE (default bypassPermissions; the bash-guard hook still applies,
-#           and so do settings.json ask rules, which deny when nobody can answer)
+#           CLAUDE_LOOP_PERMISSION_MODE (default auto: the classifier reviews every action, subagents
+#           included, and anything that would prompt is denied; the bash-guard hook and deny/ask rules
+#           apply in every mode. bypassPermissions skips the classifier.)
 #           CLAUDE_LOOP_POLL seconds between squeue checks (default 60)
 #           CLAUDE_LOOP_MODEL or --model: model for every iteration (default opus). Pinned because the
 #           CLI default changed between iterations of one run (261110); the model used is logged.
@@ -42,7 +43,7 @@ while [ $# -gt 0 ]; do
 done
 [ -n "$GOAL" ] || { echo 'usage: claude-loop.sh "<goal>" | --goal-file <path>  [--max-iter N] [--max-days D] [--budget USD] [--model M] [--allow-dirty]' >&2; exit 2; }
 CLAUDE=${CLAUDE_BIN:-$HOME/.claude/bin/claude}
-PERM=${CLAUDE_LOOP_PERMISSION_MODE:-bypassPermissions}
+PERM=${CLAUDE_LOOP_PERMISSION_MODE:-auto}
 POLL=${CLAUDE_LOOP_POLL:-60}
 
 [ -f CLAUDE.md ] && [ -d docs ] && [ -d .git ] || { echo "run from a project root (needs CLAUDE.md, docs/, .git)" >&2; exit 2; }
@@ -63,7 +64,7 @@ PROMPT="GOAL: $GOAL"
 for i in $(seq 1 "$MAX_ITER"); do
   [ "$(date +%s)" -lt "$DEADLINE" ] || { log "stop: max-days reached"; exit 1; }
   rm -f "$STATE"
-  PROTOCOL="You are running UNATTENDED inside claude-loop.sh (iteration $i of $MAX_ITER; budget \$$BUDGET this iteration). Follow this project's CLAUDE.md session protocol and its 'Extended autonomy' section. Work toward the goal below; submit Slurm jobs with sbatch when compute is needed. Before you stop you MUST: (1) write docs/log/<YYMMDD_HHMM>_<topic>.md with 'mode: unattended' in its header, (2) overwrite docs/STATUS.md, (3) git add and commit, (4) write exactly one line to $STATE: 'WAITING <jobids>' if you submitted jobs and need their results, 'CONTINUE' if there is more to do now, 'DONE' if the goal is reached, or 'NEEDS_MIKE <why>' at any plan decision point or anything irreversible. Never delete data or outputs. Never modify irreplaceable raw data. If the permission layer denies a command, do NOT route around it (no bash -c, no wrapper script, no other tool for the same effect): note the denial in the log entry and, if it blocks the goal, stop with NEEDS_MIKE."
+  PROTOCOL="You are running UNATTENDED inside claude-loop.sh (iteration $i of $MAX_ITER; budget \$$BUDGET this iteration). Follow this project's CLAUDE.md session protocol and its 'Extended autonomy' section. Work toward the goal below; submit Slurm jobs with sbatch when compute is needed. Before you stop you MUST: (1) write docs/log/<YYMMDD_HHMM>_<topic>.md with 'mode: unattended' in its header, (2) overwrite docs/STATUS.md, (3) git add and commit, (4) write exactly one line to $STATE: 'WAITING <jobids>' if you submitted jobs and need their results, 'CONTINUE' if there is more to do now, 'DONE' if the goal is reached, or 'NEEDS_MIKE <why>' at any plan decision point or anything irreversible. Never delete data or outputs. Never modify irreplaceable raw data. If the permission layer or the auto-mode classifier denies or blocks a command, do NOT route around it (no bash -c, no wrapper script, no other tool for the same effect): note the denial in the log entry and, if it blocks the goal, stop with NEEDS_MIKE."
   log "iter $i start"
   "$CLAUDE" -p "$PROTOCOL
 
@@ -71,7 +72,7 @@ $PROMPT" --model "$MODEL" --permission-mode "$PERM" --max-budget-usd "$BUDGET" -
     < /dev/null > "scratch/loop/iter_$i.jsonl" 2> "scratch/loop/iter_$i.err"
   rc=$?
   /usr/bin/jq -r 'select(.type=="result") | .result // empty' "scratch/loop/iter_$i.jsonl" > "scratch/loop/iter_$i.log" 2>/dev/null
-  used=$(/usr/bin/jq -r 'select(.type=="system" and .subtype=="init") | .model' "scratch/loop/iter_$i.jsonl" 2>/dev/null | head -1)
+  used=$(/usr/bin/jq -r 'select(.type=="system" and .subtype=="init") | "\(.model) mode=\(.permissionMode)"' "scratch/loop/iter_$i.jsonl" 2>/dev/null | head -1)
   meta=$(/usr/bin/jq -r 'select(.type=="result") | "end=\(.subtype // "?") cost_usd=\(.total_cost_usd // "?") turns=\(.num_turns // "?") session=\(.session_id // "?")"' "scratch/loop/iter_$i.jsonl" 2>/dev/null | tail -1)
   state=MISSING; rest=""
   [ -f "$STATE" ] && read -r state rest < "$STATE"
