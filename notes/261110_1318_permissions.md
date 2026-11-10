@@ -36,3 +36,15 @@ bash-guard now also blocks force pushes written with a leading plus on the refsp
 the deny rules nor the old regex caught; 8 pipe tests passed on a copy before install.
 The hook matches command text, so heredocs that merely mention a blocked form are blocked too
 (twice on 261110). Fails safe; reword the text rather than work around it.
+
+## Smoke test 4: the loop in auto mode (261110 13:39–13:41)
+Project: /jukebox/scratch/md6347/tests/loop_smoke_261110/auto; report: check_auto.sh there.
+Observed: both iterations ran claude-opus-5-5 in mode=auto (the new driver default). Iteration 1 wrote
+and ran a script via `source config/hpc.sh && conda run -p "$ENV_PY" python ...` (no allow rule
+covers it, so the classifier approved it), spawned a haiku/low subagent that checked the output
+(PASS, 10 rows), wrote and submitted an sbatch job, committed, WAITING. Iteration 2 verified the exit
+marker (0), recorded results, committed, DONE. Zero tool errors, zero permission blocks, clean tree.
+Cost 0.40 + 0.25 = 0.66 (haiku subagent 0.004). No classifier usage appears in modelUsage, so its
+cost, if any, is not visible here. sacct answered from scotty again.
+Inference: routine research steps pass the classifier unattended; one clean run is not evidence that
+it never blocks something legitimate. A block would surface as NEEDS_MIKE with the message logged.
