@@ -2,7 +2,7 @@
 # ------------------------------------------------------------------
 # bash-guard.sh — PreToolUse hook for Claude Code's Bash tool.
 # 1. Appends every command to ~/.claude/logs/bash.log  (time <tab> cwd <tab> command).
-# 2. Denies recursive/forced deletes and history-rewriting git wherever they appear in the
+# 2. Denies recursive/forced deletes and history-rewriting git (incl. +refspec pushes) wherever they appear in the
 #    command string, so wrappers (tmux, conda run, xargs, bash -c) don't bypass it.
 #    Mike runs those himself.
 # Input : hook JSON on stdin.  Output: nothing (allow) or a permissionDecision deny (block).
@@ -22,6 +22,7 @@ pat="$pat|${pre}find[[:space:]].*-delete"
 pat="$pat|${pre}rsync[[:space:]].*--delete"
 pat="$pat|${pre}git[[:space:]]+(clean|reset[[:space:]]+--hard|push[[:space:]].*(--force|-f([[:space:]]|$)))"
 pat="$pat|${pre}(shred|truncate)[[:space:]]"
+pat="$pat|${pre}git[[:space:]]+push[[:space:]]([^;&|]*[[:space:]])?\+[^[:space:]]"   # +refspec = force push
 if printf '%s' "$cmd" | grep -Eq -- "$pat"; then
   /usr/bin/jq -n --arg r "bash-guard: recursive/forced delete or git history rewrite. Mike runs these himself; ask him. (~/.claude/hooks/bash-guard.sh)" \
     '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
