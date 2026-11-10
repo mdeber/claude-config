@@ -60,10 +60,10 @@ DEADLINE=$(awk -v d="$MAX_DAYS" -v n="$(date +%s)" 'BEGIN { printf "%d", n + d *
 log() { printf '%s\t%s\n' "$(date +%FT%T)" "$*" | tee -a "$LOG"; }
 
 # The stored login refreshes itself, but its refresh token has a fixed end date; past it, the next
-# iteration fails at startup (rc != 0, no state) and the driver stops. Warn if the run could reach it.
+# iteration fails at startup (rc != 0, no state) and the driver stops. Refuse to start if the run could reach it.
 rexp=$(/usr/bin/jq -r '.claudeAiOauth.refreshTokenExpiresAt // empty' "$HOME/.claude/.credentials.json" 2>/dev/null)
 if [ -n "$rexp" ] && [ "$DEADLINE" -gt $(( rexp / 1000 )) ]; then
-  echo "WARNING: login expires $(date -d @$(( rexp / 1000 )) +%FT%T), before --max-days ends; run 'claude auth login' first to avoid a stop" | tee -a "$LOG" >&2
+  echo "refusing: login expires $(date -d @$(( rexp / 1000 )) +%FT%T), before --max-days ends. Run 'claude auth login' (or shorten --max-days) and relaunch." >&2; exit 2
 fi
 log "start goal=\"$GOAL\" max_iter=$MAX_ITER max_days=$MAX_DAYS budget=$BUDGET model=$MODEL perm=$PERM"
 PROMPT="GOAL: $GOAL"
