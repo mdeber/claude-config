@@ -49,7 +49,8 @@ fi
 mkdir -p scratch/loop
 STATE=scratch/loop/state
 LOG=scratch/loop/driver.log
-DEADLINE=$(( $(date +%s) + MAX_DAYS * 86400 ))
+[[ $MAX_DAYS =~ ^[0-9]+([.][0-9]+)?$ ]] || { echo "--max-days must be a number (fractions allowed)" >&2; exit 2; }
+DEADLINE=$(awk -v d="$MAX_DAYS" -v n="$(date +%s)" 'BEGIN { printf "%d", n + d * 86400 }')
 log() { printf '%s\t%s\n' "$(date +%FT%T)" "$*" | tee -a "$LOG"; }
 
 log "start goal=\"$GOAL\" max_iter=$MAX_ITER max_days=$MAX_DAYS budget=$BUDGET perm=$PERM"
@@ -65,7 +66,7 @@ $PROMPT" --permission-mode "$PERM" --max-budget-usd "$BUDGET" --output-format st
     < /dev/null > "scratch/loop/iter_$i.jsonl" 2> "scratch/loop/iter_$i.err"
   rc=$?
   /usr/bin/jq -r 'select(.type=="result") | .result // empty' "scratch/loop/iter_$i.jsonl" > "scratch/loop/iter_$i.log" 2>/dev/null
-  meta=$(/usr/bin/jq -r 'select(.type=="result") | "cost_usd=\(.total_cost_usd // "?") turns=\(.num_turns // "?") session=\(.session_id // "?")"' "scratch/loop/iter_$i.jsonl" 2>/dev/null | tail -1)
+  meta=$(/usr/bin/jq -r 'select(.type=="result") | "end=\(.subtype // "?") cost_usd=\(.total_cost_usd // "?") turns=\(.num_turns // "?") session=\(.session_id // "?")"' "scratch/loop/iter_$i.jsonl" 2>/dev/null | tail -1)
   state=MISSING; rest=""
   [ -f "$STATE" ] && read -r state rest < "$STATE"
   log "iter $i end rc=$rc state=$state $rest $meta"
@@ -74,7 +75,11 @@ $PROMPT" --permission-mode "$PERM" --max-budget-usd "$BUDGET" --output-format st
       [ -n "$rest" ] || { log "stop: WAITING with no job ids"; exit 1; }
       for j in $rest; do
         last=""
-        while st=$(squeue -h -j "$j" -o '%T' 2>/dev/null) && [ -n "$st" ]; do last=$st; sleep "$POLL"; done
+        while st=$(squeue -h -j "$j" -o '%T' 2>/dev/null) && [ -n "$st" ]; do
+          last=$st
+          [ "$(date +%s)" -lt "$DEADLINE" ] || { log "stop: max-days reached while job $j is $st (the job keeps running)"; exit 1; }
+          sleep "$POLL"
+        done
         log "job $j left the queue (last seen: ${last:-never in queue})"
       done
       summary=$(sacct -X -n -j "${rest// /,}" -o JobID,JobName%30,State,Elapsed,MaxRSS 2>/dev/null)
