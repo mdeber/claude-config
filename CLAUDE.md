@@ -59,6 +59,10 @@
 - Recursive or forced deletes (`rm -r`, `find -delete`, `rsync --delete`, `git clean`,
   `git reset --hard`, `git push --force`) are Mike's to run, not Claude's. The Bash hook blocks
   them and logs every command to `~/.claude/logs/bash.log`.
+- Cleanup is staged, not done. When something should be deleted, write a cleanup list beside it
+  (in a project: `scratch/cleanup_YYMMDD.md`): each path with its size, what it is, why it can go,
+  and whether anything recreates it. Give Mike the delete command in your message, not in a file
+  (the hook blocks that text in commands); he reviews the list and runs it himself.
 - Permissions on PNI servers are open and inherit from the lab dirs (setgid, umask 002). Never
   tighten them: no chmod 600/700, no umask 077, nothing user-private.
 
