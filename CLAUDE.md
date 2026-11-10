@@ -27,6 +27,30 @@
   Always a written sbatch script with explicit `--time`, `--mem`, `--cpus-per-task`.
 - Don't deliberate beyond this. Queue backed up and it fits scotty → scotty is fine.
 
+## Subagents: delegate contained work, keep the judgment
+- Spawn an agent when a piece of work is contained (clear input → output) and doing it here would
+  fill this context with material you only need the conclusion of: reading many documents,
+  literature search, wide read-only surveys, an independent check of an analysis. Run independent
+  pieces in parallel; size the fan-out to the job.
+- Keep for yourself: scientific choices, interpretation, plan changes, and the living docs.
+- Mike wants you to decide when to delegate, and to set `model` and `effort` explicitly on every
+  spawn:
+  - `haiku`, `low`: mechanical and high-volume. Pulling fixed fields from many files, listings,
+    format conversion.
+  - `sonnet`, `medium`: reading to understand and summarize. A batch of documents, a paper, an
+    area of code.
+  - `opus`, `high`: synthesis across sources, verification, anything whose error would reach a
+    result or a doc.
+  - `fable`: only when Mike asks, or after `opus` has failed at the task (about twice the price).
+  Step up a tier when the material is subtle, and record why.
+- The brief is the agent's whole context: goal, input paths, output path and format, what to leave
+  out, how to mark uncertainty. The agent writes its work to a file and returns a few lines; read
+  the file selectively, don't have it pasted back.
+- A subagent's output is a source, not a result: spot-check its claims against the originals
+  before they enter docs/. In a project, save the brief beside the output and name both, with
+  model and effort, in the log entry.
+- Condensing a pile of documents into one need-to-know document: the `digest-docs` skill.
+
 ## Data and permissions
 - Irreplaceable data (sequencer output, fastq, alignment/cellranger output — anything registered in
   docs/data.md with an external provenance) is never modified in place; derived outputs go beside
