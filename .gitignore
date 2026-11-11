@@ -2,6 +2,7 @@
 *
 
 !.gitignore
+!README.md
 !CLAUDE.md
 !settings.json
 !settings.local.json
@@ -21,12 +22,6 @@
 !bin/
 !bin/**
 
-# Per-project curated memory (not transcripts).
-!projects/
-!projects/*/
-!projects/*/memory/
-!projects/*/memory/**
-
 # Explicit secret/state exclusions. Keep these LAST: the final matching rule
 # wins, so they hold even if an un-ignore line above is later made too broad.
 .credentials.json
@@ -38,3 +33,5 @@ plugins/synced/
 *~
 \#*#
 .DS_Store
+# Per-user Claude memory: personal, not shared.
+projects/

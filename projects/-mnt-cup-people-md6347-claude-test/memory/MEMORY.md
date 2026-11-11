@@ -1,2 +1,0 @@
-- [Git, not snapshots](git-not-snapshots.md) — never cite NFS snapshots as a substitute for commits
-- [~/.claude git repo](claude-config-git-repo.md) — config is versioned; commit edits with behavior-naming messages
