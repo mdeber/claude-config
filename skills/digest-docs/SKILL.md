@@ -1,6 +1,6 @@
 ---
 name: digest-docs
-description: Condense a large set of documents (old chatbot logs, notes, email threads, exported chats, papers) into one compact need-to-know document, with subagents doing the reading so this context holds only conclusions. Use when the inputs are too many or too long to read here, or when Mike asks to digest, compact, or summarize a pile of files.
+description: Condense a large set of documents (old chatbot logs, notes, email threads, exported chats, papers) into one compact need-to-know document, with subagents doing the reading so this context holds only conclusions. Use when the inputs are too many or too long to read here, or when the user asks to digest, compact, or summarize a pile of files.
 ---
 
 # Digest a document set
@@ -11,7 +11,7 @@ Originals are never modified or moved.
 ## 1. Decide what the digest is for
 Before anything is read, write the decomposition (method.md) at the top of the work README.
 The **Question** is who reads the digest and what they need to do with it; that decides what
-survives. If Mike hasn't said, ask. It is the one choice here that changes the outcome.
+survives. If the user hasn't said, ask. It is the one choice here that changes the outcome.
 
 Work directory: in a template project, `code/analysis/YYMMDD_digest_<topic>/`; elsewhere a
 `digest_<topic>/` folder beside the requested output. Ask before creating it inside a directory

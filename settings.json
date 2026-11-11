@@ -22,15 +22,15 @@
   "autoMode": {
     "environment": [
       "$defaults",
-      "**This machine**: Princeton Neuroscience Institute (PNI) shared HPC. Claude runs on scotty, a shared login node, for Mike DeBerardine (user md6347), a neuroscience and genomics researcher. Primary use is scientific data analysis and research computing, not software deployment.",
-      "**Trusted storage**: /jukebox/pena and /jukebox/krienen (lab directories, also reached as /mnt/cup/labs/...), /jukebox/scratch/md6347 (also /mnt/bucket/scratch/md6347), and Mike's home /mnt/cup/people/md6347 including ~/.claude. Reading anywhere in these, and writing derived outputs into project directories, is routine.",
+      "**This machine**: Princeton Neuroscience Institute (PNI) shared HPC. Claude runs on scotty, a shared login node, for the user (account md6347), a neuroscience and genomics researcher. Primary use is scientific data analysis and research computing, not software deployment.",
+      "**Trusted storage**: /jukebox/pena and /jukebox/krienen (lab directories, also reached as /mnt/cup/labs/...), /jukebox/scratch/md6347 (also /mnt/bucket/scratch/md6347), and the user's home /mnt/cup/people/md6347 including ~/.claude. Reading anywhere in these, and writing derived outputs into project directories, is routine.",
       "**Trusted compute**: the spock Slurm cluster, account pni. Submitting, inspecting and waiting on jobs (sbatch, squeue, sacct, scontrol show) and detached tmux sessions named cc-* are routine. Cancelling jobs (scancel) is not.",
-      "**Trusted source control**: Mike's private GitHub repositories under github.com/mdeber (including claude-config and ai-project-template) and project repositories inside the trusted storage. Normal pushes there are routine; force pushes and history rewrites are not.",
+      "**Trusted source control**: The user's private GitHub repositories under github.com/mdeber (including claude-config and ai-project-template) and project repositories inside the trusted storage. Normal pushes there are routine; force pushes and history rewrites are not.",
       "**Irreplaceable data**: sequencer output, fastq, BAM, cellranger and other alignment outputs. Never modify, move or delete them. Unpublished lab data is never sent to external services."
     ],
     "hard_deny": [
       "$defaults",
-      "Recursive or forced deletes (rm -r/-rf, find -delete, rsync --delete, truncate, shred) and history-rewriting git (clean, reset --hard, push --force or a +refspec), even when wrapped in tmux, conda run, xargs, bash -c or a script: Mike runs these himself."
+      "Recursive or forced deletes (rm -r/-rf, find -delete, rsync --delete, truncate, shred) and history-rewriting git (clean, reset --hard, push --force or a +refspec), even when wrapped in tmux, conda run, xargs, bash -c or a script: the user runs these themselves."
     ]
   },
   "hooks": {

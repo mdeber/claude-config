@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ------------------------------------------------------------------
 # claude-loop.sh — run Claude unattended on one goal in a template project,
-#                  re-entering after every Slurm wait. Only when Mike asks for it.
+#                  re-entering after every Slurm wait. Only when the user asks for it.
 # usage   : cd <project root>
 #           tmux new-session -d -s cc-loop-<project> \
 #             '~/.claude/bin/claude-loop.sh "<goal>" | --goal-file <path>  [--max-iter N] [--max-days D] [--budget USD] [--model M] [--allow-dirty]'
@@ -10,7 +10,7 @@
 #             WAITING <jobid> [<jobid>...]   jobs submitted; re-enter when they all finish
 #             CONTINUE                        more to do now; re-enter immediately
 #             DONE                            goal reached
-#             NEEDS_MIKE <one line why>       stop; a decision is Mike's
+#             NEEDS_USER <one line why>       stop; a decision is the user's
 # outputs : scratch/loop/iter_<n>.jsonl (full transcript: every tool call and result, for audit),
 #           scratch/loop/iter_<n>.log (the iteration's final report), scratch/loop/driver.log
 # env     : ~/.claude/bin/claude (or CLAUDE_BIN), logged in standalone once (`claude auth login`)
@@ -70,7 +70,7 @@ PROMPT="GOAL: $GOAL"
 for i in $(seq 1 "$MAX_ITER"); do
   [ "$(date +%s)" -lt "$DEADLINE" ] || { log "stop: max-days reached"; exit 1; }
   rm -f "$STATE"
-  PROTOCOL="You are running UNATTENDED inside claude-loop.sh (iteration $i of $MAX_ITER; budget \$$BUDGET this iteration). Follow this project's CLAUDE.md session protocol and its 'Extended autonomy' section. Work toward the goal below; submit Slurm jobs with sbatch when compute is needed. Before you stop you MUST: (1) write docs/log/<YYMMDD_HHMM>_<topic>.md with 'mode: unattended' in its header, (2) overwrite docs/STATUS.md, (3) git add and commit, (4) write exactly one line to $STATE: 'WAITING <jobids>' if you submitted jobs and need their results, 'CONTINUE' if there is more to do now, 'DONE' if the goal is reached, or 'NEEDS_MIKE <why>' at any plan decision point or anything irreversible. Never delete data or outputs. Never modify irreplaceable raw data. If the permission layer or the auto-mode classifier denies or blocks a command, do NOT route around it (no bash -c, no wrapper script, no other tool for the same effect): note the denial in the log entry and, if it blocks the goal, stop with NEEDS_MIKE."
+  PROTOCOL="You are running UNATTENDED inside claude-loop.sh (iteration $i of $MAX_ITER; budget \$$BUDGET this iteration). Follow this project's CLAUDE.md session protocol and its 'Extended autonomy' section. Work toward the goal below; submit Slurm jobs with sbatch when compute is needed. Before you stop you MUST: (1) write docs/log/<YYMMDD_HHMM>_<topic>.md with 'mode: unattended' in its header, (2) overwrite docs/STATUS.md, (3) git add and commit, (4) write exactly one line to $STATE: 'WAITING <jobids>' if you submitted jobs and need their results, 'CONTINUE' if there is more to do now, 'DONE' if the goal is reached, or 'NEEDS_USER <why>' at any plan decision point or anything irreversible. Never delete data or outputs. Never modify irreplaceable raw data. If the permission layer or the auto-mode classifier denies or blocks a command, do NOT route around it (no bash -c, no wrapper script, no other tool for the same effect): note the denial in the log entry and, if it blocks the goal, stop with NEEDS_USER."
   log "iter $i start"
   "$CLAUDE" -p "$PROTOCOL
 
@@ -108,7 +108,7 @@ Check their outputs against the plan stage's 'done when', then continue." ;;
       PROMPT="GOAL: $GOAL
 
 Continue from docs/STATUS.md." ;;
-    DONE|NEEDS_MIKE)
+    DONE|NEEDS_USER)
       log "stop: $state $rest"; exit 0 ;;
     *)
       log "stop: no valid state written (rc=$rc)"; exit 1 ;;
