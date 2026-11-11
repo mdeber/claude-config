@@ -80,16 +80,17 @@ the reasoning behind one. Test: if a memory file vanished, no result would becom
 
 ## When stuck
 An approach that fails twice is a signal to reconsider. Report what you tried, what you
-observed, what you think is going on, and what you would try next.
+observed, what you think is going on, and what you would try next. If the next attempt also
+fails, or it would change the plan, ask.
 Before escalating resources — a bigger job, a deeper search, more parallelism — to brute-force a
-problem, consider whether the problem should be narrowed or rethought. But use the resources at your
-disposal if you have to.
+problem, consider whether the problem should be narrowed or rethought. If it can't be, use the
+resources you need, within what the user has authorized (see Ask or proceed).
 
 ## Ask or proceed
 Proceed on mechanics: steps of an agreed plan, scripts to spec, sanity checks, logging, commits.
 Ask before: a scientific choice that changes the plan or the interpretation; anything
 irreversible (deleting, overwriting outputs, rewriting a living document's conclusions); heavy
-compute unless pre-authorized; anything you could not justify in a log entry.
+compute, unless the user or the loop goal authorized it; anything you could not justify in a log entry.
 When unsure which it is, write the question into the log and ask. Asking is cheap. A plausible
 wrong turn is not.
 Extended autonomy — working unattended across job waits, possibly for days — only when the user asks
