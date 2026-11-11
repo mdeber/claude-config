@@ -1,19 +1,25 @@
 # PNI environment (md6347)
 
+Our organization is the Princeton Neuroscience Institute (PNI).
+You're running on PNI servers.
+I'm Mike, username md6347.
+I'm a genomics scientist and I work in two labs: "Krienen" and "Pena".
+
 ## Where things are
 - **scotty** = login node, also usable for real work. 44 cores, ~1 TB RAM, GPU. SHARED with all of PNI.
 - **spock** = Slurm compute. Submit from scotty; never log in to spock.
-- Canonical paths use `/jukebox` (= `/mnt/cup/labs`; `/jukebox/scratch` = `/mnt/bucket/scratch`, a
-  separate filesystem from the lab dirs).
+- Canonical paths use `/jukebox` (= `/mnt/cup/labs`). `/jukebox/scratch` = `/mnt/bucket/scratch` and is a
+  separate filesystem from the lab directories.
 - `/jukebox` is an **automount root**: `ls /jukebox` looks empty. This is normal. Never conclude a
   path is missing from a listing of `/jukebox` — access the full path directly.
-- `/Volumes/pena`, `/Volumes/krienen` are Mike's laptop SMB mounts. Translate to
+- `/Volumes/pena`, `/Volumes/krienen` are user's laptop SMB mounts. Translate to
   `/jukebox/pena`, `/jukebox/krienen` in anything that runs on the HPC.
-- Labs: `/jukebox/pena`, `/jukebox/krienen`. Both run near capacity; `df -h` before writing
-  large outputs, and prefer scratch for intermediates.
-- Mike's scratch: `/jukebox/pena/mike`, `/jukebox/krienen/lab_members/mike`, `/jukebox/scratch/md6347`
-  (conda envs in `envs/`; the project template in `tools/project-template`).
-- Home `~` = `/mnt/cup/people/md6347`, NFS. Config and old envs only. Not for data, code, or new envs.
+- Labs: `/jukebox/pena`, `/jukebox/krienen`. These storage volumes are expanded by IT when needed; 
+  `df -h` before writing large outputs, and prefer scratch for intermediates.
+- User mostly does scratch work in lab directories: `/jukebox/pena/mike` or `/jukebox/krienen/lab_members/mike`; 
+  user directory on the scratch drive (`/jukebox/scratch/md6347`) contains most of my conda envs (in `envs/`)
+  and a project template in `tools/project-template`. New conda envs are always made in scratch.
+- Home `~` = `/mnt/cup/people/md6347`, NFS. Config and additional conda envs only. Not for data, code, or new envs.
 - Primary group is `games`; lab dirs are setgid so files inherit `g_pena`/`g_krienen`. umask 002.
 
 ## Compute: scotty or Slurm — decide in one line, then move on
@@ -33,7 +39,7 @@
   literature search, wide read-only surveys, an independent check of an analysis. Run independent
   pieces in parallel; size the fan-out to the job.
 - Keep for yourself: scientific choices, interpretation, plan changes, and the living docs.
-- Mike wants you to decide when to delegate, and to set `model` and `effort` explicitly on every
+- User wants you to decide when to delegate, and to set `model` and `effort` explicitly on every
   spawn:
   - `haiku`, `low`: mechanical and high-volume. Pulling fixed fields from many files, listings,
     format conversion.
@@ -41,8 +47,9 @@
     area of code.
   - `opus`, `high`: synthesis across sources, verification, anything whose error would reach a
     result or a doc.
-  - `fable`: only when Mike asks, or after `opus` has failed at the task (about twice the price).
-  Step up a tier when the material is subtle, and record why.
+  - `fable`: only when user specifies (hardest thinking/reasoning tasks), or after `opus` has 
+    failed at the task (about twice the price). Step up a tier when the material is subtle, 
+    and record why.
 - The brief is the agent's whole context: goal, input paths, output path and format, what to leave
   out, how to mark uncertainty. The agent writes its work to a file and returns a few lines; read
   the file selectively, don't have it pasted back.
@@ -52,17 +59,19 @@
 - Condensing a pile of documents into one need-to-know document: the `digest-docs` skill.
 
 ## Data and permissions
-- Irreplaceable data (sequencer output, fastq, alignment/cellranger output — anything registered in
-  docs/data.md with an external provenance) is never modified in place; derived outputs go beside
-  it or under data/derived. If a task won't write to a data directory, leaving it read-only is good
-  practice. Ask before writing into a directory you didn't create.
+- Irreplaceable data (sequencer output, fastq, alignment/cellranger/cellbender outputs — anything 
+  registered in docs/data.md with an external provenance) is never modified in place. Downstream
+  and derived data (like h5ad files) can be modified to improve, but only after going over
+  all modifications with the user and asking permission. User may specify you have complete 
+  ownership over a data directory in which case no permission is needed.
 - Recursive or forced deletes (`rm -r`, `find -delete`, `rsync --delete`, `git clean`,
-  `git reset --hard`, `git push --force`) are Mike's to run, not Claude's. The Bash hook blocks
-  them and logs every command to `~/.claude/logs/bash.log`.
+  `git reset --hard`, `git push --force`) get Bash hook blocked and logged to 
+  `~/.claude/logs/bash.log`. These tasks can be prepared for the user to run during a cleanup
+  stage.
 - Cleanup is staged, not done. When something should be deleted, write a cleanup list beside it
   (in a project: `scratch/cleanup_YYMMDD.md`): each path with its size, what it is, why it can go,
-  and whether anything recreates it. Give Mike the delete command in your message, not in a file
-  (the hook blocks that text in commands); he reviews the list and runs it himself. If any path
+  and whether anything recreates it. Give the user the delete command in your message, not in a file
+  (the hook blocks that text in commands); user reviews the list and runs it. If any path
   holds a git repo, include -f: git object files are read-only, so without it rm asks per file.
 - Permissions on PNI servers are open and inherit from the lab dirs (setgid, umask 002). Never
   tighten them: no chmod 600/700, no umask 077, nothing user-private.
@@ -93,17 +102,17 @@ cellranger, cudatoolkit, bcl2fastq, nextflow, macs, R/4.4.1, Intel-oneapi, etc.)
   normal (prio 5000, cpu=532, mem=7T), long (4800, cpu=400, 4T), very-long (4500, cpu=300, 3T).
   Neither partition nor QOS sets a wall-clock limit, so `--time` is self-imposed. Set `--time`,
   `--mem`, and `--cpus-per-task` explicitly on every job; never rely on defaults.
-- Use `normal` unless Mike says otherwise.
+- Use `normal` unless user says otherwise.
 
 ## tmux
-Mike lives in tmux. Use it freely for anything long-running, detached, or worth watching.
+The user lives in tmux. Use it freely for anything long-running, detached, or worth watching.
 - Always start detached: `tmux new-session -d -s <name> '<command>'`
-- Name sessions `cc-<purpose>-<id>`, e.g. `cc-watch-4471382`, so Mike can find them.
+- Name sessions `cc-<purpose>-<id>`, e.g. `cc-watch-4471382`, so user can find them.
 - **Never run `tmux attach`** — it blocks on a terminal you don't have and hangs the session.
   Read output with `tmux capture-pane -p -t <name> -S -200` instead.
 - Check liveness with `tmux has-session -t <name>` or `tmux ls`.
-- Tell Mike the session name whenever you start one, so he can attach himself.
+- Tell the user the session name whenever you start one, so the user can attach if desired.
 - Clean up finished sessions, but never kill one you didn't start.
-- Extended autonomy (only when Mike asks for it): `~/.claude/bin/claude-loop.sh "<goal>"`, run
+- Extended autonomy (only when user asks for it): `~/.claude/bin/claude-loop.sh "<goal>"`, run
   detached as `cc-loop-<project>` from the project root. It re-enters headless Claude after every
   Slurm wait; the protocol is in the project template's CLAUDE.md.
