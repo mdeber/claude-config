@@ -14,6 +14,8 @@
 # outputs : scratch/loop/iter_<n>.jsonl (full transcript: every tool call and result, for audit),
 #           scratch/loop/iter_<n>.log (the iteration's final report), scratch/loop/driver.log
 # env     : ~/.claude/bin/claude (or CLAUDE_BIN), logged in standalone once (`claude auth login`)
+#           At launch the driver refuses to start unless the login works now (auth status + one tiny
+#           Haiku request) and will last past --max-days.
 #           CLAUDE_LOOP_PERMISSION_MODE (default auto: the classifier reviews every action, subagents
 #           included, and anything that would prompt is denied; the bash-guard hook and deny/ask rules
 #           apply in every mode. bypassPermissions skips the classifier.)
@@ -65,6 +67,14 @@ rexp=$(/usr/bin/jq -r '.claudeAiOauth.refreshTokenExpiresAt // empty' "$HOME/.cl
 if [ -n "$rexp" ] && [ "$DEADLINE" -gt $(( rexp / 1000 )) ]; then
   echo "refusing: login expires $(date -d @$(( rexp / 1000 )) +%FT%T), before --max-days ends. Run 'claude auth login' (or shorten --max-days) and relaunch." >&2; exit 2
 fi
+# The stored login can also die before that date (261111: refresh rejected, refreshTokenExpiresAt still
+# weeks away). Check it now, while someone is watching: `auth status` (free), then one tiny Haiku
+# request, which forces a token refresh (a fraction of a cent).
+"$CLAUDE" auth status < /dev/null > /dev/null 2>&1 || {
+  echo "refusing: not logged in. Run '$CLAUDE auth login' on this machine and relaunch." >&2; exit 2; }
+ping=$("$CLAUDE" -p 'Reply with the single word OK.' --model haiku --max-budget-usd 0.05 --output-format json < /dev/null 2>&1)
+printf '%s' "$ping" | /usr/bin/jq -e '.is_error == false' > /dev/null 2>&1 || {
+  echo "refusing: login check failed: $(printf '%s' "$ping" | head -c 300). Run '$CLAUDE auth login' and relaunch." >&2; exit 2; }
 log "start goal=\"$GOAL\" max_iter=$MAX_ITER max_days=$MAX_DAYS budget=$BUDGET model=$MODEL perm=$PERM"
 PROMPT="GOAL: $GOAL"
 for i in $(seq 1 "$MAX_ITER"); do
