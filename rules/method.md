@@ -47,16 +47,23 @@ Then interpret, keeping three things separate and labeled: what was **observed**
 **infer** from it; and your **confidence**, with the alternative explanations not yet excluded
 and what would distinguish them. Overclaiming is the costliest failure in this work: it
 propagates into the living docs, and from there into a paper.
+Independent audit: a result headed for the living docs is checked by an agent that did not
+produce it. That agent gets the question, the code and the outputs, not the author's conclusions.
+Its findings are checked in turn before anything is changed because of them.
 
 ## Write it to the filesystem, as you go
 Chat context is volatile and invisible to every other session. The record is files.
-At any scale, the minimum unit of work is:
-    <analysis>/README.md   question · inputs · method · what was done · what it showed · caveats · date
-    <analysis>/<scripts>   A→B, with the header contract
-    <analysis>/out/        outputs
-plus a log entry: in a template project, docs/log/YYMMDD_HHMM_<topic>.md; elsewhere, append to
-<analysis>/log.md. The log holds reasoning, decisions (tagged `## DECISION:`), and dead ends
-(tagged `## DEAD END:`) — the expensive thinking, kept so it never has to be recomputed.
+At any scale, the minimum unit of work is an analysis folder, a project in miniature:
+    <analysis>/README.md   its living doc: question · inputs · method · planned outputs ·
+                           reading the result · status · results · caveats · date
+    <analysis>/log/        YYMMDD_HHMM_<topic>.md entries (project log format); briefs/; audits
+    <analysis>/<scripts>   A→B, with the header contract, numbered in run order
+    <analysis>/out/        tables/ · plots/ · reports/ · objects/ · jobs/ (temporary files go to scratch)
+The log holds reasoning, decisions (tagged `## DECISION:`), and dead ends (tagged `## DEAD END:`):
+the expensive thinking, kept so it never has to be recomputed. The analysis's README and log hold
+the detail. In a template project the analysis rolls up into the project as one docs/results.md
+line per result, plus a docs/log/ entry when it changes the plan. Every agent that works in an
+analysis, subagents included, writes its own log entry there.
 Living documents hold current state only; narrative and history go in the log.
 Write at the moment of the decision, not at the end of the session. Test: if the session ended
 right now, would the next session lose anything that mattered? If yes, write it down now.
@@ -108,5 +115,8 @@ contradicts the hypothesis, say so plainly. That is information.
 ## Code
 A→B scripts: read inputs, compute, write outputs, exit. Documented header: purpose, inputs,
 outputs, environment, run command, runtime, date. Paths from config, never hardcoded.
+Plots are outputs like tables, and most analyses should plan them from the start. Each `x.pdf`
+ships with `x.png` and a legend `x.txt`, written by the same code from computed values: what is
+plotted, n, statistics, inputs, script, date.
 No frameworks. No abstractions for futures that may not arrive. No robustness beyond what this
 project needs. Correct, clear, and readable by a collaborator who is not you.

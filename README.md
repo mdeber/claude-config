@@ -21,6 +21,7 @@ project layout that `rules/method.md` and the extended-autonomy loop expect.
 | `hooks/bash-guard.sh` | Logs every Bash command to `~/.claude/logs/bash.log` and blocks recursive/forced deletes and git history rewrites, even when wrapped in tmux, `bash -c`, `xargs`, or a script. | Yes |
 | `bin/claude` | Stable path to the CLI that the Claude desktop app installs on scotty (`~/.claude/remote/ccd-cli/<version>`). | Yes, if you use the desktop app |
 | `bin/claude-loop.sh` | Extended autonomy: runs Claude headless on one goal in a template project and re-enters after every Slurm wait. | Yes |
+| `agents/` | Role definitions for subagents: `analyst` (does one analysis task, logs it), `auditor` (independently checks an analyst's work before it counts), `manager` (runs a multi-stage scope with its own analysts and audits). Each carries its logging and output contract, so briefs don't have to. | Yes |
 | `skills/digest-docs/` | Skill: condense a pile of documents (old chat logs, notes, papers) into one need-to-know doc, with subagents doing the reading. | Yes |
 | `notes/` | Design records: why each piece is the way it is, smoke-test results, dead ends. | Read; delete in your copy if you like |
 
@@ -86,9 +87,16 @@ everything else.
   wrapper script. It says what was denied and why it wanted to run it.
 - **Bounded NFS walks.** `/jukebox` metadata is slow and shared. Every `find`/`du`/`ls -R` gets a
   `timeout`, a `-maxdepth`, and prunes for dependency trees, one top-level directory at a time.
-- **Subagents for contained work.** Claude delegates reading and surveys, picks the model and
-  effort for each agent, and keeps the scientific judgment for itself. An agent's output is a
-  source to check, not a result.
+- **The top-level session is a project manager.** It decomposes work, writes briefs (saved to
+  disk), delegates to role-defined subagents with an explicit model and effort, and keeps the
+  scientific judgment and the living docs for itself.
+- **Audit before it counts.** Every result headed for the project docs is checked by an
+  independent `auditor` first. The auditor gets the question, code and outputs, never the author's
+  conclusions. Its findings are spot-checked before anything changes because of them.
+- **Analyses are projects in miniature.** Each has its own README (its living doc), its own log,
+  and `out/{tables,plots,reports,objects,jobs}`. Every plot ships as pdf + png + a legend `.txt`
+  written by the same code. In template projects a hook checks this layout whenever an analyst
+  finishes.
 
 ## Tips
 

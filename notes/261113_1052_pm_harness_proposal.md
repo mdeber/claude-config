@@ -315,3 +315,31 @@ session has no matching `*_audit_*` entry. Hold until phase 1 has run on real wo
    tables?
 4. Phase 1 now, phase 2 later (recommended), or both now?
 5. Migrate the PD project to the new layout? Not part of this change; it would be its own task.
+
+## Applied: phase 1, 261113 (user: "Yes, apply phase 1"; recommended choices 1-4, no PD migration)
+- **claude-config:**
+  - CLAUDE.md: "Subagents" replaced by "Working as project manager".
+  - method.md: independent audit, the analysis-folder unit, plot legends.
+  - agents/analyst.md, auditor.md, manager.md.
+  - README updated.
+- **template:**
+  - code/README.md: analysis layout, README sections, roll-up, plot section with save_plot in
+    Python and R.
+  - CLAUDE.md: layout, PM delegation, end-of-session steps.
+  - docs/log/README.md: "Where" paragraph, role/brief header fields, grep covers analysis logs.
+  - .gitignore: tables/plots/reports tracked, objects/ and jobs/ ignored at any depth (this also
+    fixes thru_<batch>/tables, which were ignored before); .claude/settings.local.json ignored.
+  - code/check_conventions.sh and .claude/settings.json (SubagentStop hook for analyst|manager).
+- **Tested** in a throwaway project built from the template:
+  - a conforming analysis passes, rc 0;
+  - a broken one gives 13 violations, rc 1;
+  - --changed finds both;
+  - hook mode blocks on the first stop via the transcript's Write paths (with nothing uncommitted),
+    allows the second stop (stop_hook_active), and stays silent when nothing was touched;
+  - .gitignore ignores objects/jobs at any depth and tracks plots/tables.
+- **Ran on the PD conservation analysis** (read-only): 0.6 s on NFS. It reports missing README
+  sections, no analysis log, 86 loose files in out/ (now one line), 8 _tmp dirs, 3 scripts without
+  headers.
+- **Not tested:** a live Claude session firing the hook (that needs a template project opened in a
+  session, past the workspace-trust dialog), and whether the agent definitions get picked up as
+  subagent_type (they load at session start).
