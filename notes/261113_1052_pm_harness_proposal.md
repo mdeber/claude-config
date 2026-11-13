@@ -343,3 +343,40 @@ session has no matching `*_audit_*` entry. Hold until phase 1 has run on real wo
 - **Not tested:** a live Claude session firing the hook (that needs a template project opened in a
   session, past the workspace-trust dialog), and whether the agent definitions get picked up as
   subagent_type (they load at session start).
+
+## Live test 261113 11:07 (user: "Yes, after login")
+Project /jukebox/scratch/md6347/tests/pm_harness_261113 was built from the template. Its hook was
+instrumented to append to scratch/hook_fired.log. Headless: `claude -p` with opus, auto mode,
+$5 cap. The request was phrased as the user would phrase it ("work as the project manager your
+instructions describe"), with no steps named. Run: end=success, $1.36, 12 turns, 5 min, models
+opus-5-5 + sonnet-5-5.
+- **Role files** were loaded at session start (init lists analyst, auditor, manager).
+- **Delegation:** the PM wrote the analysis README up to "Reading the result" before anything ran,
+  then saved each brief to log/briefs/ before spawning.
+  - analyst: sonnet/medium;
+  - auditor: opus/high.
+- **The auditor's brief** carried no conclusions ("you get no conclusions from me").
+- **The auditor:**
+  - viewed all 3 PNGs and recomputed every number in its own R;
+  - added checks of its own (Welch, HC3, wt overlap);
+  - gave 19 verdicts: 15 CONFIRMED, 2 PLAUSIBLE, 2 WRONG. One WRONG: the README claimed mtcars was in
+    data.md, and it wasn't. The other: the analyst's log called the pooled CIs "separate-variance".
+  - flagged an understated caveat: 4- and 8-cyl cars overlap in wt only over 3.17–3.19.
+- **The PM:**
+  - spot-checked the audit's numbers before acting;
+  - fixed both WRONGs;
+  - strengthened the caveat (DECISION logged);
+  - kept the auditor's hp check as a caveat, not a result, because it was not pre-specified;
+  - left background.md for the user;
+  - updated data.md, plan A1, results.md and STATUS;
+  - committed twice.
+- **Plots:** 3 × pdf/png/txt via save_plot. Legends are sprintf'd from computed values (F, p, n,
+  slope, script, date).
+- **Hook:** fired once, when the analyst stopped (11:09:22), with empty output: the analyst
+  conformed on its first try. So the hook loads and runs in a headless session in a fresh project,
+  but the live **block** path was not exercised; only the synthetic test covers it.
+  `check_conventions.sh` on the final folder: ok.
+- **Minor:** the PM's log header said "mode: interactive · human: Mike" for a headless run.
+  Cosmetic.
+- Verdict: phase 1 works as designed on a small task. The next real test is a multi-stage analysis
+  with a manager.
